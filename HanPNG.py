@@ -1,4 +1,3 @@
-
 import os
 import random
 import tensorflow as tf
@@ -72,14 +71,6 @@ def get_batches(image_names, label_list):
     print ("created input pipeline")
     return image_batch, label_batch
 
-def compute_accuracy(v_xs, v_ys):
-    global prediction
-    y_pre = sess.run(prediction, feed_dict={xs: v_xs, keep_prob: 1})
-    correct_prediction = tf.equal(tf.argmax(y_pre,1), tf.argmax(v_ys,1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    result = sess.run(accuracy, feed_dict={xs: v_xs, ys: v_ys, keep_prob: 1})
-    return result
-
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev = 0.1)
     return tf.Variable(initial)
@@ -146,7 +137,7 @@ def model(images, labels, keep_prob):
 
     #train_op = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(loss, global_step=global_step)
 	
-	rate = tf.train.exponential_decay(2e-4, global_step, decay_steps=2000, decay_rate=0.97, staircase=True)
+    rate = tf.train.exponential_decay(2e-4, global_step, decay_steps=2000, decay_rate=0.97, staircase=True)
     train_op = tf.train.AdamOptimizer(learning_rate=rate).minimize(loss, global_step=global_step)
     probabilities = tf.nn.softmax(prediction)
     pred = tf.identity(probabilities, name='prediction')
