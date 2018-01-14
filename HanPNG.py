@@ -189,7 +189,7 @@ def train():
         saver = tf.train.Saver()
         epoch = 0
         while epoch in range(Epochs):
-            for steps in range(20000):
+            for steps in range(895034):
                 train_x_batch, train_y_batch = sess.run([train_data_x, train_data_y])
                 _, loss_value, step = sess.run([train_op, loss, global_step], feed_dict={image_x: train_x_batch, label_y: train_y_batch, keep_prob:0.5})
                 if step % 10 == 0:
