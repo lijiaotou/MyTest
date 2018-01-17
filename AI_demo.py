@@ -6,7 +6,7 @@ import numpy as np
 import pickle
 
 #mode = "train" / test / inference"
-mode = "inference"
+mode = "train"
 char_size = 3755
 #char_size = 31
 Epochs = 1
@@ -58,8 +58,10 @@ def get_input_lists(data_dir):
 def get_image_lists(data_dir):
     image_names = []
     for root, sub_folder, file_list in os.walk(data_dir):
-        image_names += [os.path.join(root, file_path) for file_path in file_list]
-
+        for file_path in file_list:
+            name = os.path.join(root, file_path)
+            if name.find('.png') > 0 :
+                image_names += [name]
     return image_names
  
 def read_convert_image(image_name):
@@ -124,8 +126,6 @@ def model(images, labels):
     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels))
     accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits, 1), labels), tf.float32))
 
-    number = tf.argmax(logits, 1)
-
     global_step = tf.get_variable("step", [], initializer=tf.constant_initializer(0.0), trainable=False)
     #train_op = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(loss, global_step = global_step)
 
@@ -134,7 +134,9 @@ def model(images, labels):
     train_op = tf.train.AdamOptimizer(1e-4).minimize(loss, global_step=global_step)
     
     probabilities = tf.nn.softmax(logits)
-    pred = tf.identity(probabilities, name = 'prediction') 
+    pred = tf.identity(probabilities, name = 'prediction')
+    
+    number = tf.argmax(logits, 1)
     
     return loss, accuracy, global_step, train_op, pred, number
     
@@ -166,7 +168,7 @@ def train():
                 if step % 10 == 0:
                     print ("step :", step, "loss is:", loss_value)
                 
-                if step % 100 == 0:
+                if step % 500 == 0:
                     test_x_batch, test_y_batch = sess.run([test_data_x, test_data_y])
                     accuracy_value= sess.run([accuracy], feed_dict={image_x: test_x_batch, label_y: test_y_batch})
                     print ("in step ", step, "current accuracy is", accuracy_value)
@@ -196,7 +198,7 @@ def test():
         if ckpt and ckpt.model_checkpoint_path:  
            saver.restore(sess, ckpt.model_checkpoint_path)
         test_x_batch, test_y_batch = sess.run([test_data_x, test_data_y])
-        accuracy_value, number_value = sess.run([accuracy, number], feed_dict={image_x: test_x_batch, label_y: test_y_batch})
+        accuracy_value = sess.run([accuracy], feed_dict={image_x: test_x_batch, label_y: test_y_batch})
         print ("current accuracy is", accuracy_value)
         sess.close()
         
